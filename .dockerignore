@@ -1,5 +1,104 @@
-.github
-.gitignore
-*.md
-LICENSE
-docker-compose.yaml
+# --- Python / General ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# --- Installer logs ---
+pip-log.txt
+pip-delete-this-directory.txt
+
+# --- Unit test / coverage ---
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# --- Translations ---
+*.mo
+*.pot
+
+# --- Django ---
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+TestDB_Horilla.sqlite3
+media/
+staticfiles/
+
+# --- ERROR FIX: Migrations ---
+# We ONLY ignore compiled files. We MUST include the actual migration .py files.
+**/migrations/*.pyc
+
+# --- Environment Variables (Security) ---
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# --- IDEs / Editors ---
+.vscode/
+.idea/
+.spyderproject
+.spyproject
+.ropeproject
+
+# --- Front End ---
+node_modules/
+
+# --- Other Frameworks / Tools (Preserved from your list) ---
+# Flask
+instance/
+.webassets-cache
+# Scrapy
+.scrapy
+# Sphinx
+docs/_build/
+# PyBuilder
+target/
+# Jupyter / IPython
+.ipynb_checkpoints
+profile_default/
+ipython_config.py
+# Celery
+celerybeat-schedule
+celerybeat.pid
+# SageMath
+*.sage.py
+# Mypy / Pyre
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+# Whoosh
+whoosh_index/
