@@ -5,23 +5,36 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    # This maps port 8000 on your computer to 8000 in the container
     ports:
       - "8000:8000"
     restart: unless-stopped
     environment:
-      # --- Connection Variables for Entrypoint Script ---
-      DATABASE_HOST: db
-      DATABASE_PORT: 5432
-      # --- Django Connection String ---
+      # --- Django Settings ---
+      DEBUG: "True"
+      ALLOWED_HOSTS: "*"
+      # Use a dummy secret key for local dev. Railway overrides this via Variables.
+      SECRET_KEY: "django-insecure-dev-key"
+      
+      # --- Database Connection (The "One-Line" Fix) ---
+      # This connects to the 'db' service defined below.
       DATABASE_URL: "postgres://postgres:postgres@db:5432/horilla"
-      DJANGO_SETTINGS_MODULE: "horilla.settings"
+
+      # --- Connection Check Variables (For entrypoint.sh) ---
+      # The entrypoint script uses these to wait for the DB before starting
+      DATABASE_HOST: "db"
+      DATABASE_PORT: "5432"
+
     volumes:
+      # Maps your local folder to the container so code changes update instantly
       - ./horilla:/horilla
       - ./media:/horilla/media
     depends_on:
       db:
         condition: service_healthy
 
+  # This service runs Postgres LOCALLY. 
+  # Railway will ignore this service and provide its own managed database.
   db:
     image: postgres:16-bullseye
     environment:
