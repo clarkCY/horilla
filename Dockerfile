@@ -1,31 +1,43 @@
-FROM python:3.10-slim-bullseye
+# 1. Use an official Python runtime based on Debian (Bullseye)
+# "Slim" is smaller, but "Bullseye" ensures we have the tools to build C-extensions like psycopg2
+FROM python:3.11-slim-bullseye
 
-ENV PYTHONUNBUFFERED=1
-# These ENV vars are just placeholders now; 
-# the real values come from docker-compose -> entrypoint -> .env
-ENV DATABASE_URL=""
-ENV DEBUG=True
-ENV SECRET_KEY=changeme
-ENV ALLOWED_HOSTS=*
-ENV CSRF_TRUSTED_ORIGINS=
-ENV TIME_ZONE=UTC
+# 2. Set environment variables
+# PYTHONDONTWRITEBYTECODE: Prevents Python from writing pyc files to disc
+# PYTHONUNBUFFERED: Ensures logs are flushed immediately (vital for Docker/Railway logs)
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
-RUN apt-get update && apt-get install -y libcairo2-dev gcc git
-
-# Clone the repository
-RUN git clone https://github.com/clarkCY/horilla.git
-
+# 3. Set the working directory
+# We match the path used in your docker-compose volumes
 WORKDIR /horilla
 
-# REMOVED: git checkout master (Repository uses 'main' by default)
-# REMOVED: The old .env.dist creation lines (Moved to entrypoint.sh)
+# 4. Install system dependencies
+# libpq-dev is REQUIRED for psycopg2 (Postgres driver)
+# gcc and python3-dev are needed to compile some Python packages
+RUN apt-get update && apt-get install -y \
+    gcc \
+    python3-dev \
+    libpq-dev \
+    netcat \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN pip install -r requirements.txt
+# 5. Install Python dependencies
+# We copy requirements first to leverage Docker cache
+COPY requirements.txt /horilla/
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
 
-# Make entrypoint executable
-RUN chmod +x /horilla/entrypoint.sh && sed -i 's/\r$//' /horilla/entrypoint.sh
+# 6. Copy the project code
+COPY . /horilla/
 
+# 7. (Optional) Collect Static files
+# Un-comment this if you are deploying to production and need static files served
+# RUN python horilla/manage.py collectstatic --noinput
+
+# 8. Expose the port (Documentation only)
 EXPOSE 8000
 
-ENTRYPOINT ["/horilla/entrypoint.sh"]
+# 9. Default Command
+# We use the same command as docker-compose, but it's good to have it here as a fallback
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "horilla.wsgi:application"]
