@@ -1,37 +1,34 @@
-#!/bin/bash
+#!/bin/sh
 
-# 1. Generate .env file from environment variables
-echo "Generating .env file..."
-cat <<EOT > /horilla/.env
-DATABASE_URL=$DATABASE_URL
-DEBUG=$DEBUG
-SECRET_KEY=$SECRET_KEY
-ALLOWED_HOSTS=$ALLOWED_HOSTS
-CSRF_TRUSTED_ORIGINS=$CSRF_TRUSTED_ORIGINS
-TIME_ZONE=$TIME_ZONE
-EOT
+# Stop the script if any command fails
+set -e
 
-# 2. Wait for Database (Universal Method)
-#    We try to connect using Django's built-in connection handler. 
-#    This works regardless of whether the host is 'db' or a Railway URL.
-echo "Waiting for database..."
-while ! python3 -c "import django; django.setup(); from django.db import connections; from django.db.utils import OperationalError; try: connections['default'].cursor(); except OperationalError: exit(1)" > /dev/null 2>&1; do
-  echo "Database not ready yet... sleeping 1s"
-  sleep 1
-done
-echo "Database is ready!"
+echo "Entrypoint script is running..."
 
-# 3. Run Migrations
-echo "Running migrations..."
-python3 manage.py makemigrations
-python3 manage.py migrate
-python3 manage.py collectstatic --noinput
+# 1. Wait for Database
+# We check if DATABASE_HOST is set. If so, we wait for it to be ready.
+if [ -n "$DATABASE_HOST" ]; then
+    echo "Waiting for PostgreSQL at $DATABASE_HOST:$DATABASE_PORT..."
 
-# 4. Create Admin User (Safe Mode)
-#    This might print an error if user exists, but '|| true' keeps the script running.
-echo "Creating admin user..."
-python3 manage.py createhorillauser --first_name admin --last_name admin --username admin --password admin --email admin@example.com --phone 1234567890 || true
+    # 'nc -z' checks if the port is open. We loop until it is.
+    while ! nc -z $DATABASE_HOST $DATABASE_PORT; do
+      sleep 0.1
+    done
 
-# 5. Start Server
-echo "Starting Server..."
+    echo "PostgreSQL started!"
+fi
+
+# 2. Run Migrations
+# This commands creates tables if missing, or updates them if changed.
+echo "Applying database migrations..."
+python manage.py migrate
+
+# 3. (Optional) Collect Static Files
+# Uncomment if your static files (CSS/JS) are missing in production
+# echo "Collecting static files..."
+# python manage.py collectstatic --noinput
+
+# 4. Start the Server
+# 'exec' replaces the shell with the command from Docker (Gunicorn)
+echo "Starting application..."
 exec "$@"

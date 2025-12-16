@@ -5,20 +5,17 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    # Railway/Cloud often ignores 'ports' and assigns a random PORT env var.
-    # We map 8000 locally, but use the PORT env var in the command below.
     ports:
       - "8000:8000"
     restart: unless-stopped
     environment:
-      # If running locally, use this. 
-      # On Railway, this is OVERRIDDEN by the "Variables" tab automatically.
+      # --- Connection Variables for Entrypoint Script ---
+      DATABASE_HOST: db
+      DATABASE_PORT: 5432
+      # --- Django Connection String ---
       DATABASE_URL: "postgres://postgres:postgres@db:5432/horilla"
       DJANGO_SETTINGS_MODULE: "horilla.settings"
-    # UPDATED: Use shell form to allow variable expansion if you add an entrypoint later
-    command: gunicorn --bind 0.0.0.0:8000 horilla.wsgi:application
     volumes:
-      # Maps your local folder to /horilla inside the container
       - ./horilla:/horilla
       - ./media:/horilla/media
     depends_on:
@@ -31,8 +28,6 @@ services:
       POSTGRES_DB: horilla
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      # REMOVED: SCRAM-SHA-256 args (often causes connection refused on older drivers)
-      # REMOVED: Custom PGDATA path (Stick to default to avoid corruption/path errors)
     ports:
       - "5432:5432"
     restart: unless-stopped
