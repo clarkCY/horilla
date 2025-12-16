@@ -1,26 +1,34 @@
-FROM python:3.10-slim-bullseye AS builder
+FROM python:3.10-slim-bullseye
 
 ENV PYTHONUNBUFFERED=1
+ENV DATABASE_URL=""
+ENV DEBUG=True
+ENV SECRET_KEY=changeme
+ENV ALLOWED_HOSTS=*
+ENV CSRF_TRUSTED_ORIGINS=
+ENV TIME_ZONE=UTC
 
-RUN apt-get update && apt-get install -y --no-install-recommends libcairo2-dev gcc && rm -rf /var/lib/apt/lists/*
+# Install system dependencies
+RUN apt-get update && apt-get install -y libcairo2-dev gcc git
 
-WORKDIR /app/
+# Clone the repository
+RUN git clone https://github.com/clarkCY/horilla.git
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+WORKDIR /horilla
 
-FROM python:3.10-slim-bullseye AS runtime
+# Ensure we are on the correct branch
+RUN git checkout master
 
-ENV PYTHONUNBUFFERED=1
+RUN pip install -r requirements.txt
 
-WORKDIR /app/
-
-COPY --from=builder /install /usr/local
-
-COPY . .
-
-RUN chmod +x /app/entrypoint.sh
+# Make entrypoint executable
+RUN chmod +x /horilla/entrypoint.sh && sed -i 's/\r$//' /horilla/entrypoint.sh
 
 EXPOSE 8000
 
-CMD ["python3", "manage.py", "runserver"]
+ENTRYPOINT ["/horilla/entrypoint.sh"]
+
+# UPDATED CMD: We now use Gunicorn here. 
+# Because the entrypoint uses 'exec "$@"', this command will be executed 
+# after migrations and user creation are finished.
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "horilla.wsgi:application"]
