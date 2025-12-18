@@ -38,7 +38,7 @@ settings.MIDDLEWARE.append(
     "auditlog.middleware.AuditlogMiddleware",
 )
 
-SETTINGS_EMAIL_BACKEND = getattr(settings, "EMAIL_BACKEND", False)
+SETTINGS_EMAIL_BACKEND = getattr(settings, "EMAIL_BACKEND", True)
 setattr(settings, "EMAIL_BACKEND", "base.backends.ConfiguredEmailBackend")
 if SETTINGS_EMAIL_BACKEND:
     setattr(settings, "EMAIL_BACKEND", SETTINGS_EMAIL_BACKEND)
