@@ -60,7 +60,7 @@ INSTALLED_APPS = [
     "base",
     "employee",
     "recruitment",
-    "leave",
+    #"leave",
     "pms",
     "onboarding",
     "asset",
@@ -68,6 +68,11 @@ INSTALLED_APPS = [
     "payroll",
     "widget_tweaks",
     "django_apscheduler",
+    'django.contrib.sites',  # Required for social auth
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.microsoft',
 ]
 APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
 
