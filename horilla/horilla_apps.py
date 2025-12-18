@@ -15,7 +15,7 @@ INSTALLED_APPS.append("horilla_documents")
 INSTALLED_APPS.append("horilla_views")
 INSTALLED_APPS.append("horilla_automations")
 INSTALLED_APPS.append("auditlog")
-INSTALLED_APPS.append("biometric")
+#INSTALLED_APPS.append("biometric")
 INSTALLED_APPS.append("helpdesk")
 INSTALLED_APPS.append("offboarding")
 INSTALLED_APPS.append("horilla_backup")
@@ -58,6 +58,6 @@ SIDEBARS = [
     "project",
 ]
 
-WHITE_LABELLING = True
+WHITE_LABELLING = False
 NESTED_SUBORDINATE_VISIBILITY = False
 TWO_FACTORS_AUTHENTICATION = False
