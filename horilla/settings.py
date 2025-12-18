@@ -30,7 +30,7 @@ env = environ.Env(
         "django-insecure-j8op9)1q8$1&0^s&p*_0%d#pr@w9qj@1o=3#@d=a(^@9@zd@%j",
     ),
     ALLOWED_HOSTS=(list, ["*"]),
-    CSRF_TRUSTED_ORIGINS=(list, ["http://localhost:8000"]),
+    CSRF_TRUSTED_ORIGINS=(list, ["https://egigoals.up.railway.app"]),
 )
 
 env.read_env(os.path.join(BASE_DIR, ".env"), overwrite=False)
@@ -232,6 +232,10 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+# Registration Settings
+ACCOUNT_ALLOW_REGISTRATION = env.bool("ACCOUNT_ALLOW_REGISTRATION", default=True)
+REGISTRATION_OPEN = True
 
 # Production settings
 if not DEBUG:
